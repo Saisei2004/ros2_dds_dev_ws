@@ -1,0 +1,21 @@
+# 画像SSHテスト用Python依存関係
+
+# 画像処理・コンピュータビジョン
+opencv-python>=4.8.0
+numpy>=1.24.0
+
+# Webフレームワーク
+Flask>=2.3.0
+
+# HTTP リクエスト
+requests>=2.31.0
+
+# 音声処理（将来の拡張用）
+# sounddevice>=0.4.6
+
+# ログ・デバッグ
+# logging（標準ライブラリ）
+
+# 並行処理
+# threading（標準ライブラリ）
+# time（標準ライブラリ）

@@ -106,6 +106,43 @@ private:
         cv::calcHist(&bgr_planes[1], 1, 0, cv::Mat(), g_hist, 1, &histSize, &histRange, true, false);
         cv::calcHist(&bgr_planes[2], 1, 0, cv::Mat(), r_hist, 1, &histSize, &histRange, true, false);
         
+        // 統計情報をオーバーレイ表示した画像を作成
+        cv::Mat stats_image = original_image.clone();
+        
+        // 統計情報を画像に描画
+        int y_pos = 30;
+        cv::putText(stats_image, "=== IMAGE STATISTICS ===", cv::Point(10, y_pos), 
+                   cv::FONT_HERSHEY_SIMPLEX, 0.7, cv::Scalar(0, 255, 0), 2);
+        y_pos += 30;
+        
+        cv::putText(stats_image, "Size: " + std::to_string(width_) + "x" + std::to_string(height_), 
+                   cv::Point(10, y_pos), cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(255, 255, 255), 1);
+        y_pos += 25;
+        
+        cv::putText(stats_image, "Mean (B,G,R): (" + 
+                        std::to_string(static_cast<int>(mean[0])) + ", " + 
+                        std::to_string(static_cast<int>(mean[1])) + ", " + 
+                        std::to_string(static_cast<int>(mean[2])) + ")", 
+                   cv::Point(10, y_pos), cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(255, 255, 255), 1);
+        y_pos += 25;
+        
+        cv::putText(stats_image, "StdDev (B,G,R): (" + 
+                        std::to_string(static_cast<int>(stddev[0])) + ", " + 
+                        std::to_string(static_cast<int>(stddev[1])) + ", " + 
+                        std::to_string(static_cast<int>(stddev[2])) + ")", 
+                   cv::Point(10, y_pos), cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(255, 255, 255), 1);
+        y_pos += 25;
+        
+        cv::putText(stats_image, "Total Pixels: " + std::to_string(width_ * height_), 
+                   cv::Point(10, y_pos), cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(255, 255, 255), 1);
+        y_pos += 25;
+        
+        cv::putText(stats_image, "Data Size: " + std::to_string(width_ * height_ * 3) + " bytes", 
+                   cv::Point(10, y_pos), cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(255, 255, 255), 1);
+        
+        // 処理済み画像を表示
+        cv::imshow("Processed Image", stats_image);
+        
         // 統計情報を文字列にフォーマット
         std::string stats_message = "=== 画像統計情報 ===\n";
         stats_message += "画像サイズ: " + std::to_string(width_) + "x" + std::to_string(height_) + "\n";

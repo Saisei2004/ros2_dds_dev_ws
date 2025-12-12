@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>audio_topic</name>
+  <version>0.0.0</version>
+  <description>ROS2 audio topic package for audio input/output with visual feedback</description>
+  <maintainer email="matsuda@junkers12.in.xack.co.jp">matsuda</maintainer>
+  <license>Apache-2.0</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <depend>rclcpp</depend>
+  <depend>std_msgs</depend>
+  <depend>sensor_msgs</depend>
+
+  <!-- Audio processing dependencies -->
+  <depend>libasound2-dev</depend>
+  <depend>portaudio19-dev</depend>
+  <depend>libsndfile1-dev</depend>
+  
+  <!-- Visual feedback dependencies -->
+  <depend>opencv2</depend>
+  
+  <!-- Additional libraries -->
+  <depend>libfftw3-dev</depend>
+
+  <test_depend>ament_lint_auto</test_depend>
+  <test_depend>ament_lint_common</test_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>

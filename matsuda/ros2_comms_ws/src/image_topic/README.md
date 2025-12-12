@@ -1,11 +1,11 @@
 # image_topic パッケージ
 
-ROS2を使用した画像トピック通信パッケージです。SSHトンネル経由でローカルPCから受信したカメラ画像をROS2トピックで処理し、処理済み画像をHTTPサーバーで配信します。
+ROS2を使用した画像トピック通信パッケージです。SSHトンネル経由でローカルPCから受信したカメラ画像をROS2トピックで処理し、処理済み画像をOpenCVウィンドウで表示します。
 
 ## 機能
 
 - **image_publisher**: SSHトンネル経由でカメラ画像を受信し、ROS2トピックで送信
-- **image_subscriber**: ROS2トピックを受信し、HTTPサーバーで処理済み画像を配信
+- **image_subscriber**: ROS2トピックを受信し、OpenCVウィンドウで処理済み画像を表示
 
 ## システム概要
 
@@ -14,6 +14,8 @@ ROS2を使用した画像トピック通信パッケージです。SSHトンネ�
     ↓              ↓              ↓        ↓         ↓              ↓
 カメラ画像    ポート5009      image_    image_   ポート5010    処理済み画像
 取得・送信                   publisher subscriber              受信・表示
+    ↓                                                           ↓
+camera_sender.py                                          local_ros2_image_viewer.py
 ```
 
 ## 依存関係
@@ -60,11 +62,11 @@ ros2 run image_topic image_publisher
 ```
 [INFO] [image_publisher]: 画像パブリッシャーを開始しました
 [INFO] [image_publisher]: SSHで受信した画像をROS2トピックで送信します
-[INFO] [image_publisher]: HTTPサーバー開始: http://127.0.0.1:5001/frame
+[INFO] [image_publisher]: 画像取得スレッド開始: SSHトンネル経由で画像を取得します
 [INFO] [image_publisher]: 画像をパブリッシュしました (フレーム数: 10, サイズ: 640x480)
 ```
 
-### 2. 画像サブスクライバー（ROS2受信→HTTP配信）の起動
+### 2. 画像サブスクライバー（ROS2受信→OpenCV表示）の起動
 
 **別のターミナルで:**
 ```bash
@@ -80,7 +82,10 @@ ros2 run image_topic image_subscriber
 ```
 [INFO] [image_subscriber]: 画像サブスクライバーを開始しました
 [INFO] [image_subscriber]: トピック: image_topic
-[INFO] [image_subscriber]: HTTPサーバー: http://127.0.0.1:5010/video
+[INFO] [image_subscriber]: ROS2トピックから受信した画像をSSHでローカルに送信します
+[INFO] [image_subscriber]: ポート5010でHTTPサーバーを起動中...
+[INFO] [image_subscriber]: HTTPサーバー開始: http://127.0.0.1:5010/video
+[INFO] [image_subscriber]: ESCキーまたはCtrl+Cで終了できます
 [INFO] [image_subscriber]: 画像受信 #1: 640x480, エンコーディング: bgr8, データサイズ: 921600 bytes
 ```
 
@@ -88,7 +93,21 @@ ros2 run image_topic image_subscriber
 
 - **OpenCVウィンドウ**が開き、リアルタイムで画像が表示されます
 - **ESCキー**または**Ctrl+C**で終了
-- ローカルPC側で`local_ros2_image_viewer.py`を起動して処理済み画像を確認
+
+### 4. ローカルPC側での画像確認
+
+**ローカルPC側で別途実行:**
+```bash
+# ローカルPC側でROS2画像ビューアーを起動
+python3 local_ros2_image_viewer.py
+```
+
+**期待される出力:**
+```
+2024-01-01 12:00:00 - INFO - ローカルROS2画像ビューアーを開始します...
+2024-01-01 12:00:00 - INFO - ローカルROS2画像受信開始: http://127.0.0.1:5010/video
+2024-01-01 12:00:00 - INFO - ストリーム接続成功
+```
 
 ## トピック情報
 
@@ -96,7 +115,7 @@ ros2 run image_topic image_subscriber
 - **名前**: `image_topic`
 - **型**: `sensor_msgs/msg/Image`
 - **説明**: カメラ画像（640x480、BGR8エンコーディング）
-- **フレームレート**: 約10Hz（100ms間隔）
+- **フレームレート**: 2Hz（500ms間隔）
 
 ## 画像モード
 
@@ -107,7 +126,8 @@ ros2 run image_topic image_subscriber
 ### カメラモードの特徴
 - SSHトンネル経由で`http://127.0.0.1:5009/frame`から画像を取得
 - curlコマンドを使用してHTTPリクエストを送信
-- タイムアウト2秒で安全な通信を実現
+- タイムアウト0.5秒で安全な通信を実現
+- 1秒間隔の頻度制限でHTTPリクエストを制御
 - "CAMERA MODE"表示
 
 ### テストモードの特徴
@@ -122,7 +142,7 @@ ros2 run image_topic image_subscriber
 | ポート | 用途 | プログラム |
 |--------|------|-----------|
 | 5009 | SSHトンネル（カメラ画像受信） | image_publisher |
-| 5010 | HTTPサーバー（処理済み画像配信） | image_subscriber |
+| 5010 | SSHトンネル（処理済み画像配信） | image_subscriber |
 
 ## トラブルシューティング
 
@@ -196,7 +216,7 @@ sudo apt install libopencv-dev
 - ローカルPC側で`camera_sender.py`が起動している必要があります
 - SSHトンネルが適切に設定されている必要があります
 - カメラ画像が取得できない場合、自動的にテスト画像モードになります
-- 画像は10Hz（100ms間隔）で送信されます
+- 画像は2Hz（500ms間隔）で送信されます
 - OpenCVウィンドウはESCキーまたはCtrl+Cで終了してください
 - 統計情報は5秒間隔で自動表示されます
 
@@ -204,7 +224,7 @@ sudo apt install libopencv-dev
 
 ### ローカルPC側（/home/matsuda/local_src/）
 - `camera_sender.py`: カメラ画像送信サーバー
-- `local_ros2_image_viewer.py`: 処理済み画像表示
+- `local_ros2_image_viewer.py`: ROS2画像受信・表示クライアント
 - `local_camera_viewer.py`: ローカルカメラ直接表示
 
 ## ファイル構成
